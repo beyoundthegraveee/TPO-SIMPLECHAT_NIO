@@ -74,7 +74,7 @@ public class ChatServer {
                         }
                     }
                 }catch (IOException exc){
-                    exc.printStackTrace();
+                    writeMessage("*** " + exc);
                 }
             }
         });
@@ -149,8 +149,8 @@ public class ChatServer {
             try {
                 ByteBuffer buffer = StandardCharsets.UTF_8.encode(CharBuffer.wrap(request));
                 channel.write(buffer);
-            } catch (IOException e) {
-                e.printStackTrace();
+            } catch (IOException exc) {
+                writeMessage("*** " + exc);
             }
         });
     }
