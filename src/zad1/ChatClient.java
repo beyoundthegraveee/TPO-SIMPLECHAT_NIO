@@ -50,6 +50,7 @@ public class ChatClient{
     public void login(){
         send(id + " logged in");
         clientThread.start();
+
     }
 
     public void logout(){
@@ -59,7 +60,7 @@ public class ChatClient{
             isRunning = false;
             clientThread.interrupt();
         } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+            chatView.append("*** ").append(e).append("\n");
         }
     }
 
@@ -69,11 +70,12 @@ public class ChatClient{
             sendBuffer.clear();
             sendBuffer.put(req.getBytes());
             sendBuffer.flip();
+            Thread.sleep(30);
             while (sendBuffer.hasRemaining()){
                 clientChannel.write(sendBuffer);
             }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        } catch (IOException | InterruptedException e) {
+            chatView.append("*** ").append(e).append("\n");
         }
     }
 
@@ -97,7 +99,7 @@ public class ChatClient{
                     buffer.clear();
                 }
             } catch (IOException e) {
-                e.printStackTrace();
+                chatView.append("*** ").append(e).append("\n");
             }
 
             if (!stringBuilder.toString().isEmpty()) {

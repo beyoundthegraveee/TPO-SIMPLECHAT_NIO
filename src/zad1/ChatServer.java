@@ -73,13 +73,13 @@ public class ChatServer {
                             serviceRequest(socketChannel);
                         }
                     }
-                }catch (IOException e){
-                    e.printStackTrace();
+                }catch (IOException exc){
+                    exc.printStackTrace();
                 }
             }
         });
         serverThread.start();
-        System.out.println("Server started \n");
+        System.out.println("Server started\n");
 
     }
 
@@ -113,10 +113,18 @@ public class ChatServer {
                 clients.put(socketChannel, request);
             }
             if (!request.isEmpty()){
-                writeMessage(request);
+                String id = clientIds.get(socketChannel);
+                if (request.contains("logged in")){
+                    writeMessage(request);
+                }else if (request.contains("logged out")){
+                    writeMessage(request);
+                }else {
+                    writeMessage(id + ": " + request);
+                }
+
             }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        } catch (IOException exc) {
+            writeMessage("*** " + exc);
         }
 
     }
@@ -127,10 +135,9 @@ public class ChatServer {
             selector.close();
             ssc.close();
             System.out.println("Server stopped");
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (IOException exc) {
+            writeMessage("*** " + exc);
         }
-
     }
 
     public String getServerLog() {
