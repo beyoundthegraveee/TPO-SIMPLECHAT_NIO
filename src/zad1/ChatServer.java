@@ -97,31 +97,21 @@ public class ChatServer {
                 clientIds.put(socketChannel, id);
                 clients.put(socketChannel, resp);
                 serverLog+= LocalTime.now() + " "+ resp;
+                writeMessage(request);
             }
             else if (request.contains("logged out")){
                 String id = request.split("\\s")[0];
                 String resp = id + " logged out"+"\n";
                 clients.put(socketChannel, resp);
                 serverLog+= LocalTime.now() + " "+ resp;
-                ByteBuffer byteBuffer = StandardCharsets.UTF_8.encode(request.toString());
-                socketChannel.write(byteBuffer);
+                writeMessage(request);
                 clients.remove(socketChannel);
             }else {
                 String id = clientIds.get(socketChannel);
                 String resp = id +": "+ request+ "\n";
                 serverLog+= LocalTime.now() + " "+ resp;
                 clients.put(socketChannel, request);
-            }
-            if (!request.isEmpty()){
-                String id = clientIds.get(socketChannel);
-                if (request.contains("logged in")){
-                    writeMessage(request);
-                }else if (request.contains("logged out")){
-                    writeMessage(request);
-                }else {
-                    writeMessage(id + ": " + request);
-                }
-
+                writeMessage(id + ": " + request);
             }
         } catch (IOException exc) {
             writeMessage("*** " + exc);
@@ -144,14 +134,15 @@ public class ChatServer {
         return serverLog;
     }
 
-    public void writeMessage(String request){
+    public void writeMessage(String request) {
         clients.forEach((channel, req) -> {
             try {
                 ByteBuffer buffer = StandardCharsets.UTF_8.encode(CharBuffer.wrap(request));
                 channel.write(buffer);
             } catch (IOException exc) {
-                writeMessage("*** " + exc);
+                exc.printStackTrace();
             }
         });
     }
+
 }
