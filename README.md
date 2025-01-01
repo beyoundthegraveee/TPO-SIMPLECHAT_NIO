@@ -1,51 +1,51 @@
-Napisać serwer czatu, który:
-obsługuje logowanie klientów (tylko id, bez hasła),
-przyjmuje od klientów wiadomości i rozsyła je do zalogowanych klientów,
-obsługuje wylogowanie klientów,
-gromadzi wszystkie odpowiedzi na żądania klientów w logu, realizowanym w pamięci wewnętrznej (poza systemem plikowym).
+Write a chat server that:
+handles customer logins (id only, no password),
+accepts messages from clients and distributes them to logged-in clients,
+handles the logging out of clients,
+collects all responses to client requests in a log, implemented in internal memory (outside the file system).
 
-Zadania te wykonuje klasa ChatServer, która ma:
-konstruktor: public ChatServer(String host, int port)
-metodę: public void startServer(), która uruchamia serwer w odrębnym wątku,
-metodę: public void stopServer(), która zatrzymuje serwer i wątek, w którym działa,
- metodę String getServerLog() - zwraca  log serwera (wymagany format logu będzie widoczny w dalszych przykładach).
+These tasks are performed by the ChatServer class, which has:
+constructor: public ChatServer(String host, int port)
+method: public void startServer(), which starts the server in a separate thread,
+method: public void stopServer(), which stops the server and the thread it is running in,
+ String getServerLog() method - which returns the server log (the required log format will be seen in further examples).
 
-Wymagania konstrukcyjne dla klasy ChatServer:
-multipleksowania kanałów gniazd (użycie selektora),
-serwer może obsługiwać równolegle wielu klientów, ale obsługa żądań klientów odbywa się w jednym wątku,
+Design requirements for the ChatServer class:
+multiplexing of socket channels (use of selector),
+the server can handle multiple clients in parallel, but handling client requests in a single thread,
 
-Dostarczyć także klasy ChatClient z konstruktorem:
+Also provide a ChatClient class with a constructor:
 
  public ChatClient(String host, int port, String id), gdzie id - id klienta
 
-i następującymi metodami:
-public void login() - loguje klienta na serwer
-public void logout() - wylogowuje klienta,
-public void send(String req)  - wysyła do serwera żądanie req
-public String getChatView() - zwraca dotychczasowy widok czatu z pozycji danego klienta (czyli wszystkie infomacje, jakie dostaje on po kolei od serwera)
-Dla metody send żądaniem może być posłanie tekstu wiadomości, zalogowanie, wylogowanie, a protokół komunikacji z  serwerem można po swojemu wymyślić.
+and the following methods:
+public void login() - logs the client onto the server
+public void logout() - logs the client off,
+public void send(String req) - sends a req request to the server
+public String getChatView() - returns the current chat view from the given client's position (i.e. all the information it receives from the server in turn)
+For the send method, the request can be sending the text of the message, logging in, logging out, and you can come up with your own communication protocol with the server.
 
-Wymagania konstrukcyjne dla klasy ChatClient
-nieblokujące wejście - wyjście
+Structural requirements for the ChatClient class
+non-blocking input - output
 
-Dodatkowo stworzyć klasę ChatClientTask, umożliwiającą uruchamianie klientów w odrębnych wątkach poprzez ExecutorService.
-Obiekty tej klasy tworzy statyczna metoda:
+Additionally, create a ChatClientTask class that allows clients to be launched in separate threads via ExecutorService.
+Objects of this class are created by a static method:
 
      public static ChatClientTask create(Client c, List<String> msgs, int wait)
 
-gdzie:
-c - klient (obiekt klasy Client)
-msgs - lista wiadomości do wysłania przez klienta c
-wait - czas wstrzymania pomiędzy wysyłaniem żądań.
+where:
+c - client (Client class object)
+msgs - list of messages to be sent by the client c
+wait - pause time between sending requests.
 
-Kod działający w wątku ma wykonywać następując działania:
-łączy się z serwerem i loguje się (c.login()
-wysyła kolejne wiadomości z listy msgs (c.send(...))
-wylogowuje klienta (c.logout())
+The code running in the thread should perform the following actions:
+connects to the server and logs in (c.login()
+sends subsequent messages from the msgs list (c.send(...))
+logs out the client (c.logout())
 
-Parametr wait w sygnaturze metodu create oznacza czas w milisekundach, na jaki wątek danego klienta jest wstrzymywany po każdym żądaniu. Jeśli wait jest 0, wątek klienta nie jest wstrzymywany,
+The wait parameter in the create method signature means the time in milliseconds for which the given client's thread is paused after each request. If wait is 0, the client's thread is not paused,
 
-Oto pseudokod fragmentu odpowiedzialnego za posylanie żądań:
+Here is the pseudocode of the fragment responsible for sending requests:
 
       c.login();
       if (wait != 0) uśpienie_watku_na wait ms;
@@ -58,16 +58,15 @@ Oto pseudokod fragmentu odpowiedzialnego za posylanie żądań:
       c.logout();
       if (wait != 0) uśpienie_watku_na wait ms;
 
-W projekcie znajduje się klasa Main (plik niemodyfikowalny), w której z pliku testowego wprowadzane są informacje nt. konfiguracji serwera (host, port) oraz  klientów (id, czas wstrzymania wątku po każdym żądaniu, zestaw wiadomości do wysłania).
+The project contains a Main class (unmodifiable file), in which information about the server configuration (host, port) and clients (id, thread pause time after each request, set of messages to send) is entered from the test file.
 
-Format pliku testowego:
-pierwszy wiersz: nazwa_hosta
-drugi wiersz: nr portu
-kolejne wiersze:
-id_klienta<TAB>parametr wait w ms<TAB>msg1<TAB>msg2<TAB> ....  <TAB>msgN
+Test file format:
+first line: host_name
+second line: port number
+subsequent lines:
+client_id<TAB>wait parameter in ms<TAB>msg1<TAB>msg2<TAB> .... <TAB>msgN
 
-
-Klasa Main:
+Main class:
 
 import java.io.*;
 import java.nio.file.*;
@@ -117,7 +116,7 @@ public class Main {
 }
 
 
-Dla pliku testowego o treści:
+For a test file of:
 localhost
 9999
 Asia    50    Dzień dobry    aaaa    bbbb    Do widzenia
@@ -126,7 +125,7 @@ Sara    50    Dzień dobry    aaaa    bbbb    Do widzenia
 
 
 
-program ten może wyprowadzić:
+this programme can derive:
 
 Server started
 
@@ -190,24 +189,24 @@ Asia logged out
 Adam logged out
 
 
-Przyklad pokazuje wymaganą formę wydruku (chatView klienta, wejścia w logu serwera). W szczególności:
-start serwera powoduje wypisanie na konsoli: Server started
-logowanie klienta id skutkuje rozesłaniem wiadomości: id logged in
-wylogowanie klienta id skutkuje rozesłaniem wiadomości: id logged out
-otrzymanie wiadomości msg od klienta id skutkuje rozeslaniem wiadomości id: msg
-widok czatu zwracany przez client.getChatView() dla klienta id jest poprzedzony nagłówkiem:  === id chat view
-log serwera jest poprzedzony nagłówkiem === Server log ===  i zawiera kolejno wszystkie odpowiedzi serwera z podaniem czasu w formacie HH:MM:SS.nnn, gdzie nnn - milisekundy (czas wg zegara systemowego),
-zatrzymanie serwera wypisuje na konsoli: Server stopped
-wszelkie błędy w interakcji klienta z serwerem (wyjątki exc, np. IOException) powinny być dodawane do chatView klienta  jako exc.toString() poprzedzone trzema gwiazdakami
-Forma wydruku jest obowiązkowa, a jej niedotrzymanie powoduje utratę punktów.
-Konkretna zawartość wydruków chatview i logu seerwera (kolejność wierszy, podane  czasy itp.) mogą być w każdym przebiegu inne, ważne jednak, aby widac było równoległą obsługę klientów oraz zachowaną logikę: klienci otrzymują, w odpowiedniej kolejności, tylko te wiadomości, które się pojawiły  od momentu ich logowania do momentu wylogowania.
+The example shows the required form of printing (client chatView, server log entries). In particular:
+starting the server results in the following message being printed on the console: Server started
+logging in the client id results in the following message being sent: id logged in
+logging out the client id results in the following message being sent: id logged out
+receiving a msg message from client id results in the following message being sent: msg
+the chat view returned by client.getChatView() for client id is preceded by the header: === id chat view
+the server log is preceded by the header === Server log === and contains all server responses in turn with the time in the format HH:MM:SS.nnn, where nnn - milliseconds (time according to the system clock),
+stopping the server prints out the following message on the console: Server stopped
+any errors in the client's interaction with the server (exc exceptions, e.g. IOException) should be added to the client's chatView as exc.toString() preceded by three asterisks
+The printout form is mandatory, and failure to do so results in the loss of points. The specific content of the chatview and seer log printouts (line order, times, etc.) may be different in each run, but it is important to see parallel client service and the logic preserved: clients receive, in the correct order, only those messages that appeared from the moment they logged in to the moment they logged out.
 
-Podusumowanie:
-trzeba stworzyć klasy ChatServer, ChatClient, ChatClientTask w taki sposób, aby zapewnić właściwe wykonanie  kodu metody main z klasy Main
+Summary:
+you need to create the ChatServer, ChatClient, ChatClientTask classes in such a way as to ensure proper execution of the code of the main method from the Main class
 
-Ale
-trzeba przygotować kod  na rozliczne konfiguracje podawane w pliku ChatTest.txt.
-Przyklady wyników Main.main():
+But
+you need to prepare the code for the numerous configurations provided in the ChatTest.txt file.
+
+Examples of Main.main() results:
 Dla:
 localhost
 33333
@@ -332,4 +331,4 @@ Sara logged out
 
 
 
-Uwaga: plik Main.java jest niemodyfikowalny.
+Note: The Main.java file is unmodifiable.
